@@ -1,0 +1,9 @@
+{
+  "name": "rfc-to-jira",
+  "description": "Convert RFC spec documents into structured JIRA tickets that Claude can implement end-to-end, with built-in validation loops (unit tests, integration tests, local manual testing)",
+  "author": {
+    "name": "Utibe Okodi"
+  },
+  "license": "MIT",
+  "keywords": ["jira", "rfc", "specs", "tickets", "implementation", "tdd"]
+}
