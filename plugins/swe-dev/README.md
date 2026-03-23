@@ -8,7 +8,7 @@ Autonomous development from JIRA tickets. Takes one ticket, multiple tickets, or
 - **Multiple tickets**: Parallelize independent tickets across git worktrees
 - **Full epic**: Fetch all tickets, build dependency graph, execute in waves
 - **TDD loop**: Write failing tests first, implement, run tests, fix, repeat
-- **Local validation**: Run the app and verify manually (or via Playwright for UI tasks)
+- **Local validation**: Delegates to the `manual-verify` plugin for all manual verification
 - **One PR per ticket**: Each ticket gets its own reviewable PR into main
 - **JIRA integration**: Transitions tickets to "In Review" after PR creation
 - **Conflict resolution**: Auto-rebases PRs when parallel branches conflict
@@ -43,7 +43,7 @@ Each agent runs in an isolated git worktree. Independent tickets within a wave e
 | Plugin | Role | When Called |
 |--------|------|------------|
 | **rfc-to-jira** | Creates the tickets this skill implements | Before swe-dev |
-| **manual-verify** | UI-level validation for browser-facing tasks | Called by swe-dev when task has UI validation steps |
+| **manual-verify** | Local validation (UI, API, DB, Redis, worker) | Called by swe-dev after tests pass |
 | **pr-review** | Reviews PRs against RFC and coding standards | After swe-dev creates PRs |
 
 ## Prerequisites
