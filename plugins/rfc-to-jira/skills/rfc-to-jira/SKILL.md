@@ -77,7 +77,7 @@ Parse the RFC into these key sections for ticket generation:
 | **Data Model** | Phase 0 tasks (migrations, schema) |
 | **Key Data Flows** | Implementation guidance in task descriptions |
 | **Error Handling** | Task acceptance criteria (error cases to handle) |
-| **Environment Variables** | Setup/config tasks |
+| **Environment Variables** | Setup/config tasks + external prerequisite tasks |
 | **Key Invariants** | Non-negotiable rules included in every task description |
 | **Dependencies** | Task ordering and blocked-by relationships |
 | **Implementation Phases** | Story breakdown (1 story per phase) |
@@ -192,6 +192,20 @@ After all tickets are created, output a summary table:
 ## Scale Constraints
 
 [Copy from RFC § Scale Constraints]
+
+## External Prerequisites
+
+[Copy from RFC § Environment Variables > "External prerequisites" subsection. These are setup steps that must be completed OUTSIDE the codebase before implementation can begin.]
+
+Examples of external prerequisites:
+- Stripe: Create products, prices, and webhook endpoints in the Stripe Dashboard
+- SendGrid: Configure sender identity, create API key, set up email templates
+- AWS: Provision RDS, ElastiCache, S3 buckets, ECS clusters via Terraform
+- PagerDuty: Create services, escalation policies, and integration keys
+- ClickHouse: Apply schema migrations before ingestion begins
+- DNS: Configure domain records for the application
+
+**IMPORTANT:** These prerequisites generate dedicated "External Setup" tasks in Phase 0 (see Task Decomposition Guidelines). Each task includes step-by-step instructions for configuring the external service, what credentials/IDs to capture, and where to store them (environment variables, AWS Secrets Manager).
 ```
 
 ### Story Template
@@ -370,6 +384,83 @@ This task is complete when:
 3. PR follows the template in `.github/PULL_REQUEST_TEMPLATE.md`
 ````
 
+### External Setup Task Template
+
+Some RFCs depend on external services that must be configured before code implementation can begin. These are non-code tasks (no TDD, no PR) but are critical blockers. The RFC's "Environment Variables" section lists these under "External prerequisites", and the "Dependencies" section may reference "Wraps external service". Use this template for those tasks:
+
+````markdown
+## Objective
+
+Configure [External Service] for [module name] integration.
+
+## Context
+
+**RFC:** [path to the RFC file]
+**Module that wraps this service:** [e.g., `packages/shared/src/saas/billing/stripe.ts`]
+**Why this must happen first:** [e.g., "The billing service needs Stripe product IDs and webhook signing secrets before any code can reference them"]
+
+## Configuration Steps
+
+### 1. [Service] Account Setup
+
+- [ ] [Step 1: e.g., "Log in to Stripe Dashboard at dashboard.stripe.com"]
+- [ ] [Step 2: e.g., "Switch to Test Mode for development"]
+
+### 2. Create Required Resources
+
+- [ ] [Resource 1: e.g., "Create Product: 'AI Observability Platform'"]
+- [ ] [Resource 2: e.g., "Create Price: Free tier ($0/month, metered usage)"]
+- [ ] [Resource 3: e.g., "Create Price: Starter tier ($49/month, metered usage)"]
+- [ ] [Resource 4: e.g., "Create Price: Pro tier ($199/month, metered usage)"]
+- [ ] [Resource 5: e.g., "Create Webhook endpoint: https://your-domain/api/webhooks/stripe"]
+  - Events to subscribe: [list specific events, e.g., "customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.payment_succeeded, invoice.payment_failed"]
+
+### 3. Capture Credentials and IDs
+
+Record the following values (these become environment variables):
+
+| Value | Where to Find | Env Variable |
+|-------|--------------|--------------|
+| [e.g., API Secret Key] | [e.g., Stripe Dashboard > Developers > API Keys] | `STRIPE_SECRET_KEY` |
+| [e.g., Webhook Signing Secret] | [e.g., Stripe Dashboard > Developers > Webhooks > Signing secret] | `STRIPE_WEBHOOK_SECRET` |
+| [e.g., Free Price ID] | [e.g., Stripe Dashboard > Products > Free > Price ID] | `STRIPE_PRICE_FREE` |
+
+### 4. Store Credentials
+
+- [ ] Add values to `.env` for local development (copy from `.env.dev.example`)
+- [ ] For production: store in AWS Secrets Manager
+- [ ] NEVER commit credentials to the repository
+
+### 5. Verify Setup
+
+- [ ] [Verification step: e.g., "Run a test API call to confirm the key works"]
+- [ ] [Verification step: e.g., "Send a test webhook event from Stripe Dashboard and confirm it arrives"]
+
+## Acceptance Criteria
+
+- [ ] All required resources created in [Service]
+- [ ] All credentials captured and stored in `.env` (local) and AWS Secrets Manager (production)
+- [ ] Test API call or webhook confirms connectivity
+- [ ] No credentials committed to git
+
+## Common External Services and What to Configure
+
+For reference, here are typical setup requirements for services used in this project:
+
+| Service | What to Configure | Key Outputs |
+|---------|-------------------|-------------|
+| **Stripe** | Products, Prices (per plan tier), Webhook endpoint, Customer portal settings | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, Price IDs per plan |
+| **Twilio SendGrid** | Sender identity verification, API key, email templates (welcome, quota warning, invoice), domain authentication (DNS records for DKIM/SPF) | `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, template IDs |
+| **AWS RDS** | PostgreSQL instance (Multi-AZ), security groups, parameter groups | `DATABASE_URL` connection string |
+| **AWS ElastiCache** | Redis cluster, security groups, encryption in transit | `REDIS_URL` connection string |
+| **AWS S3** | Buckets for backups and exports, lifecycle policies, encryption | `S3_BUCKET_NAME`, `S3_REGION` |
+| **AWS ECS** | Cluster, task definitions, service configuration | Cluster ARN, service names |
+| **PagerDuty** | Service, escalation policy, integration key (Events API v2) | `PAGERDUTY_ROUTING_KEY` |
+| **Sentry** | Project, DSN, release tracking setup | `SENTRY_DSN` |
+| **ClickHouse** | Version verification (>=25.1.5.5 for CVE patches), disable library_bridge, user/password | `CLICKHOUSE_URL`, `CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD` |
+| **Cloudflare/Route 53** | DNS records, SSL certificates | Domain configuration |
+````
+
 ---
 
 ## Task Decomposition Guidelines
@@ -395,16 +486,18 @@ When breaking phases into tasks, follow these rules:
 | API Routes (webhooks) | Implementation | "Implement Stripe webhook handler at /api/webhooks/stripe" |
 | Error Handling (each error type) | Included in the function task | Folded into the service method task, not a separate task |
 | Environment Variables | Config/setup | "Add environment variable validation for [service] config" |
+| Environment Variables > External prerequisites | External setup | "Configure Stripe products, prices, and webhook endpoint" |
 | Key Data Flows | Implementation guidance | Referenced in task descriptions, not a separate task |
 | Service-Specific Testing | Testing | "Add cross-tenant isolation integration tests" |
 
 ### Task ordering rules
 
-1. **Schema/migration tasks always come first** within a phase
-2. **Service method tasks follow schema tasks** (they depend on the schema)
-3. **tRPC/API route tasks come after service methods** (they call service methods)
-4. **Integration test tasks come last** (they test the full flow)
-5. **Environment variable/config tasks go in Phase 0**
+1. **External setup tasks come first** in Phase 0 (configure Stripe, SendGrid, AWS, PagerDuty, etc. before any code depends on them)
+2. **Schema/migration tasks follow external setup** within a phase
+3. **Environment variable/config tasks** go in Phase 0 (after external setup, since env vars often contain credentials from external services)
+4. **Service method tasks follow schema tasks** (they depend on the schema)
+5. **tRPC/API route tasks come after service methods** (they call service methods)
+6. **Integration test tasks come last** (they test the full flow)
 
 ### Sizing guidance
 
@@ -423,10 +516,11 @@ Given the Multi-Tenancy Core RFC with 3 implementation phases:
 - **Type**: Epic
 
 ### Phase 0 Story + Tasks
-- **Story**: Multi-Tenancy Core Phase 0: Schema and migrations
-  - **Task 1**: Add SaaS columns (slug, status, settings) to organizations table via Prisma migration
-  - **Task 2**: Add org_id column and bloom filter indexes to ClickHouse tables (traces, observations, scores)
-  - **Task 3**: Add environment variable validation for ClickHouse connection config
+- **Story**: Multi-Tenancy Core Phase 0: Schema, migrations, and external setup
+  - **Task 1**: Verify ClickHouse version meets security requirements (>=25.1.5.5) and disable library_bridge
+  - **Task 2**: Add SaaS columns (slug, status, settings) to organizations table via Prisma migration
+  - **Task 3**: Add org_id column and bloom filter indexes to ClickHouse tables (traces, observations, scores)
+  - **Task 4**: Add environment variable validation for ClickHouse connection config
 
 ### Phase 1 Story + Tasks
 - **Story**: Multi-Tenancy Core Phase 1: Core service methods
