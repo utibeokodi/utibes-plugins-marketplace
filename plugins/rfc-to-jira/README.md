@@ -4,11 +4,31 @@ A Claude Code plugin that converts RFC specification documents into structured J
 
 ## Features
 
-- Reads standard 16-section RFC documents and companion PRDs
+- Reads standard 16-section RFC documents plus any non-standard sections (Langfuse Baseline, Dunning Policy, Alert Rules, etc.)
+- Maps companion PRD EARS requirements (`WHEN [trigger] THE SYSTEM SHALL [behaviour]`) to Given/When/Then acceptance criteria on each task
 - Creates a ticket hierarchy: Epic (service) > Stories (phases) > Tasks (work items)
-- Each task includes TDD workflow, implementation steps, manual validation steps, and acceptance criteria
 - Cross-references CONSTITUTION, stack.md, and structure.md for coding standards
-- Handles dependencies between phases and tasks
+- Handles cross-epic dependencies and bidirectional module relationships
+- Reusable for any RFC following the standard template
+
+## Ticket Types
+
+| Template | For | Examples |
+|----------|-----|---------|
+| **Task** | Application code with TDD loop | Service methods, tRPC endpoints, Zod schemas |
+| **BullMQ Job** | Repeatable/cron jobs in the worker | Usage sync, downgrade checks, queue-depth metrics |
+| **Terraform** | Infrastructure as code | CloudWatch alarms, PagerDuty services, dashboards |
+| **External Setup** | Third-party service configuration | Stripe products, SendGrid templates, AWS provisioning |
+
+## What Each Task Includes
+
+1. **Context**: RFC/PRD paths, module location, pattern-to-follow reference, Langfuse Baseline guardrails, key invariants
+2. **Out of scope**: Explicit list of what this task does NOT do
+3. **TDD step**: Write failing tests first with Given/When/Then cases (mandatory)
+4. **Implementation steps**: Exact files to create/modify, code patterns to follow, Langfuse file modification warnings
+5. **Test validation**: Run tests, typecheck, lint
+6. **Manual validation**: Start app locally, verify end-to-end (with alternatives for internal-only modules)
+7. **Acceptance criteria**: Functional (from PRD EARS) + cross-cutting checklist (security, observability, tenant isolation)
 
 ## Usage
 
@@ -18,22 +38,12 @@ A Claude Code plugin that converts RFC specification documents into structured J
 
 Or ask naturally: "create JIRA tickets from the billing service RFC", "break down the multi-tenancy spec into tickets"
 
-## Ticket Structure
-
-Each generated task includes:
-1. **Context**: RFC path, module location, key invariants, dependencies
-2. **TDD step**: Write failing tests first (mandatory)
-3. **Implementation steps**: Exact files to create/modify, code patterns to follow
-4. **Test validation**: Run tests, typecheck, lint
-5. **Manual validation**: Start app locally, verify end-to-end
-6. **Final checks**: Full test suite, build verification
-7. **Acceptance criteria**: Checklist derived from RFC and CONSTITUTION
-
 ## Prerequisites
 
 - Atlassian MCP server connected to Claude Code
 - Jira project with Epic, Story, and Task issue types
-- RFC following the standard 16-section template
+- RFC following the standard 16-section template (with optional non-standard sections)
+- Companion PRD with EARS requirements in the same directory
 
 ## Installation
 
