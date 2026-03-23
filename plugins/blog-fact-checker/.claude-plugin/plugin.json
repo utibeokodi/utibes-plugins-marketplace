@@ -1,0 +1,8 @@
+{
+  "name": "blog-fact-checker",
+  "description": "Verify blog posts and articles sentence by sentence, outputting a comprehensive verification table with source links and accuracy ratings",
+  "author": {
+    "name": "Utibe Okodi"
+  },
+  "license": "MIT"
+}
