@@ -1,0 +1,8 @@
+{
+  "name": "example-plugin",
+  "description": "An example plugin demonstrating the standard plugin structure for this marketplace",
+  "author": {
+    "name": "Utibe Okodi"
+  },
+  "license": "MIT"
+}
