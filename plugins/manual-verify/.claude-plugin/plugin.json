@@ -1,0 +1,9 @@
+{
+  "name": "manual-verify",
+  "description": "Black-box manual QA verification via Playwright. Launches a browser, navigates the UI using context from JIRA tickets and Langfuse documentation, executes validation steps, captures video and screenshot evidence, and returns structured pass/fail results. Called by swe-dev after tests pass, or invoked directly.",
+  "author": {
+    "name": "Utibe Okodi"
+  },
+  "license": "MIT",
+  "keywords": ["qa", "manual-testing", "playwright", "browser", "validation", "black-box", "verification"]
+}
