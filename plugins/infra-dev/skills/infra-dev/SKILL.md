@@ -73,6 +73,29 @@ terraform init -backend=true
 
 If any prerequisite fails, report to the user and stop. Do NOT proceed without valid credentials and state.
 
+### Step 2b: Select Namespace (User Prompt Required)
+
+Before planning, ask the user which namespace this provisioning targets:
+
+```markdown
+## Namespace Selection
+
+Which namespace should this infrastructure be provisioned in?
+
+- **dev** — All resources will be prefixed with `dev-` (e.g., `dev-ingestion-error-rate-critical`)
+- **prod** — All resources will be prefixed with `prod-` (e.g., `prod-ingestion-error-rate-critical`)
+
+Please confirm: **dev** or **prod**?
+```
+
+Wait for the user's response before proceeding. The selected namespace determines:
+- **Resource name prefix**: All resource names must start with `dev-` or `prod-` (e.g., `dev-ai-observability-critical`, `prod-ingestion-error-rate-critical`)
+- **Terraform workspace or directory**: Use the appropriate workspace or environment-specific directory (e.g., `infra/terraform/dev/`, `infra/terraform/prod/`)
+- **Variable defaults**: Dev and prod may have different threshold defaults (e.g., relaxed thresholds in dev, stricter in prod)
+- **Terraform state**: Dev and prod must use separate state files to avoid cross-environment conflicts
+
+Store the selected namespace in a variable and apply the prefix consistently to every resource name, tag, and output throughout the remaining steps. Never mix namespaces in a single run.
+
 ### Step 3: Plan (User Approval Required)
 
 #### 3a. Read the ticket and existing infrastructure
@@ -94,7 +117,10 @@ If any prerequisite fails, report to the user and stop. Do NOT proceed without v
 Present a detailed plan to the user:
 
 ```markdown
-## Infrastructure Plan: <TICKET-KEY> — <ticket summary>
+## Infrastructure Plan: <TICKET-KEY> — <ticket summary> [<NAMESPACE>]
+
+### Namespace
+**<dev|prod>** — All resources prefixed with `<dev-|prod->`.
 
 ### Objective
 [What resources will be provisioned and why]
@@ -103,8 +129,8 @@ Present a detailed plan to the user:
 
 | Resource Type | Name | Key Configuration | Provider |
 |--------------|------|-------------------|----------|
-| [e.g., aws_cloudwatch_metric_alarm] | [e.g., ingestion-error-rate-critical] | [e.g., threshold: 5%, period: 300s, evaluation_periods: 1] | AWS |
-| [e.g., pagerduty_service] | [e.g., ai-observability-critical] | [e.g., escalation_policy: critical-oncall] | PagerDuty |
+| [e.g., aws_cloudwatch_metric_alarm] | [e.g., dev-ingestion-error-rate-critical] | [e.g., threshold: 5%, period: 300s, evaluation_periods: 1] | AWS |
+| [e.g., pagerduty_service] | [e.g., dev-ai-observability-critical] | [e.g., escalation_policy: critical-oncall] | PagerDuty |
 
 ### Terraform Files to Create/Modify
 
@@ -117,6 +143,7 @@ Present a detailed plan to the user:
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
+| namespace | string | (user-selected) | Environment namespace: `dev` or `prod`. Used as prefix for all resource names. |
 | [e.g., ingestion_error_rate_threshold] | number | 5 | Percentage threshold for critical alert |
 | [e.g., rds_cpu_warning_threshold] | number | 70 | RDS CPU % for warning alert |
 
@@ -143,6 +170,9 @@ After `terraform apply`, these commands will verify the resources exist and are 
 - [e.g., "2 SNS topics: free tier"]
 - [e.g., "PagerDuty: free tier (up to 5 users)"]
 
+### Summary
+[2-3 sentence high-level summary of the entire plan: what is being provisioned, for which service/system, and the expected outcome once applied.]
+
 ### Risks
 - [e.g., "Alarm thresholds are estimates; may need tuning after first week of production data"]
 ```
@@ -162,9 +192,10 @@ git checkout -b feat/<ticket-key>-<short-description> main
 #### 4b. Write the Terraform files
 
 Follow these patterns:
+- **Namespace prefix on all resource names** using `var.namespace` (e.g., `"${var.namespace}-ingestion-error-rate-critical"`)
 - **All thresholds as variables** (never hardcoded values in resource definitions)
-- **Meaningful resource names** that include the alert tier (critical/warning/info)
-- **Tags on all resources** (Project, Environment, ManagedBy: "terraform")
+- **Meaningful resource names** that include the namespace prefix and alert tier (critical/warning/info)
+- **Tags on all resources** (Project, Environment: `var.namespace`, ManagedBy: "terraform")
 - **Outputs** for resource IDs and ARNs (used in validation step)
 - **Comments** explaining why each threshold was chosen (link to RFC)
 

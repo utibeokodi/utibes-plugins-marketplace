@@ -9,6 +9,7 @@ Autonomous infrastructure provisioning from JIRA tickets via Terraform. Writes T
 ## Features
 
 - **Terraform workflow**: fmt, validate, plan (approve), apply, validate
+- **Namespace-aware**: Supports `dev` and `prod` namespaces with automatic `dev-` / `prod-` prefix on all resources. User is prompted to select the namespace before planning.
 - **Multi-provider**: AWS (CloudWatch, RDS, ElastiCache, ECS, S3, IAM, SNS, ALB), PagerDuty, Sentry, Cloudflare
 - **Validation loop**: Post-apply verification via AWS CLI and provider APIs
 - **Proof in PR**: Validation outputs saved to `infra/validation/<ticket-key>/` and included in the PR
@@ -31,8 +32,9 @@ Autonomous infrastructure provisioning from JIRA tickets via Terraform. Writes T
 ```
 Step 1: Fetch JIRA ticket
 Step 2: Verify prerequisites (Terraform, AWS CLI, credentials)
-Step 3: Plan (detailed resource list, variables, validation strategy) → user approval
-Step 4: Write Terraform configuration
+Step 2b: Prompt user to select namespace (dev or prod)
+Step 3: Plan (detailed resource list, variables, summary, validation strategy) → user approval
+Step 4: Write Terraform configuration (all resources prefixed with dev- or prod-)
 Step 5: terraform plan → user approval
 Step 6: terraform apply (after approval only)
 Step 7: Validate resources via AWS CLI / provider APIs, capture outputs
