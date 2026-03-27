@@ -1,0 +1,52 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-plugins-marketplace",
+  "description": "Custom plugins for autonomous development, code review, infrastructure provisioning, and QA verification",
+  "owner": {
+    "name": "Utibe Okodi"
+  },
+  "plugins": [
+    {
+      "name": "blog-fact-checker",
+      "description": "Verify blog posts and articles sentence by sentence, outputting a comprehensive verification table with source links and accuracy ratings",
+      "source": "./plugins/blog-fact-checker",
+      "category": "productivity"
+    },
+    {
+      "name": "example-plugin",
+      "description": "An example plugin demonstrating the standard plugin structure for this marketplace",
+      "source": "./plugins/example-plugin",
+      "category": "development"
+    },
+    {
+      "name": "infra-dev",
+      "description": "Autonomous infrastructure provisioning from JIRA tickets. Writes Terraform configuration for AWS and PagerDuty resources, runs terraform plan/apply with user approval, validates resources via AWS CLI and provider APIs, captures validation screenshots, and creates PRs with proof of provisioning.",
+      "source": "./plugins/infra-dev",
+      "category": "development"
+    },
+    {
+      "name": "manual-verify",
+      "description": "Black-box manual QA verification via Playwright. Launches a browser, navigates the UI using context from JIRA tickets and Langfuse documentation, executes validation steps, captures video and screenshot evidence, and returns structured pass/fail results.",
+      "source": "./plugins/manual-verify",
+      "category": "development"
+    },
+    {
+      "name": "pr-reviewer",
+      "description": "Comprehensive PR code review with JIRA context. Fetches JIRA ticket and follows linked documents (PRDs, GitHub markdown, Confluence) up to configurable depth, reviews tests for coverage and black-box philosophy, runs tests locally (skips if CI passed), verifies implementation matches ticket requirements, and reviews code across 8 dimensions.",
+      "source": "./plugins/pr-reviewer",
+      "category": "development"
+    },
+    {
+      "name": "rfc-to-jira",
+      "description": "Convert RFC spec documents into structured JIRA tickets that Claude can implement end-to-end, with built-in validation loops (unit tests, integration tests, local manual testing)",
+      "source": "./plugins/rfc-to-jira",
+      "category": "development"
+    },
+    {
+      "name": "swe-dev",
+      "description": "Autonomous development from JIRA tickets. Fetches tickets (single ticket or full epic), builds a dependency graph, parallelizes implementation across git worktrees, runs TDD loops, validates locally, and creates one PR per ticket.",
+      "source": "./plugins/swe-dev",
+      "category": "development"
+    }
+  ]
+}
