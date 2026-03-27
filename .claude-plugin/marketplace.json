@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-plugins-marketplace",
+  "name": "utibes-plugins-marketplace",
   "description": "Custom plugins for autonomous development, code review, infrastructure provisioning, and QA verification",
   "owner": {
     "name": "Utibe Okodi"
