@@ -1,6 +1,6 @@
 # Spec Creator
 
-Creates PRD and RFC specification documents through a conversational, iterative process.
+Creates and updates PRD and RFC specification documents through a conversational, iterative process.
 
 ## Core Principle
 
@@ -15,6 +15,7 @@ Creates PRD and RFC specification documents through a conversational, iterative 
 - EARS notation for all functional requirements (`WHEN/IF...THE SYSTEM SHALL`)
 - Generic templates adapted to the project's tech stack at generation time
 - Explicit approval gate before writing any files
+- **Spec update mode** with impact analysis across all specs, companion sync, and cascade detection
 - Q&A mode for questions about spec writing, EARS notation, RFC best practices
 
 ## Usage
@@ -37,6 +38,11 @@ Creates PRD and RFC specification documents through a conversational, iterative 
 # Skip domain research
 /spec-creator --skip-research I already know the domain, build a caching layer
 
+# Update an existing spec
+/spec-creator --update .specs/billing-service/02-RFC-billing-service.md add webhook retry logic
+/spec-creator update the notification service RFC to add email templates
+/spec-creator add a caching layer to the entitlement quota spec
+
 # Q&A mode
 /spec-creator what is EARS notation?
 /spec-creator how should I structure an RFC?
@@ -45,12 +51,14 @@ Creates PRD and RFC specification documents through a conversational, iterative 
 
 ## How It Works
 
-1. Parse request and detect mode (spec creation or Q&A)
+1. Parse request and detect mode (spec creation, spec update, or Q&A)
 2. Research the domain via WebSearch and explore existing codebase
 3. Ask clarifying questions in batches; iterate until requirements are clear
 4. Generate PRD section by section with user review gates
 5. Generate RFC section by section, grounded in the approved PRD
 6. Present file paths, get explicit user approval, then write to `.specs/`
+
+For **updates**: read the target spec, its companion, all other specs, constitution, and global invariants. Run impact analysis showing affected sections and cascading changes. Draft modifications with before/after diffs. Write only after explicit approval.
 
 ## Configuration
 
@@ -60,6 +68,7 @@ Creates PRD and RFC specification documents through a conversational, iterative 
 | Research | enabled | `--skip-research` | Skip WebSearch domain research |
 | Output scope | both | `--prd-only` | Generate PRD only, skip RFC |
 | Output scope | both | `--rfc-only` | Generate RFC only (requires existing PRD) |
+| Mode | create | `--update PATH` | Update an existing spec with impact analysis |
 
 ## Output
 

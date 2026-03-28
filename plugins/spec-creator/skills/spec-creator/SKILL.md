@@ -1,18 +1,19 @@
 ---
 name: spec-creator
-description: This skill should be used when creating PRD (Product Requirements Document) or RFC (Request for Comments) specification documents through a conversational process. Triggers on requests like "I need a billing service", "spec out a notification system", "write a PRD for", "create an RFC for", "design the [X] module", "/spec-creator [description]", or when users want to capture requirements before implementation. Also triggers in Q&A mode on questions like "what is EARS notation?", "how should I structure an RFC?", "what sections does a PRD need?", or "explain RFC best practices". Supports --prd-only, --rfc-only, --skip-research, and --output-dir flags.
+description: This skill should be used when creating or updating PRD (Product Requirements Document) or RFC (Request for Comments) specification documents through a conversational process. Triggers on requests like "I need a billing service", "spec out a notification system", "write a PRD for", "create an RFC for", "design the [X] module", "/spec-creator [description]", or when users want to capture requirements before implementation. Also triggers on update requests like "update the billing RFC to add webhook retries", "add a caching layer to the notification service spec", "/spec-creator --update .specs/billing-service/02-RFC-billing-service.md add retry logic", or when users want to modify an existing spec. Also triggers in Q&A mode on questions like "what is EARS notation?", "how should I structure an RFC?", "what sections does a PRD need?", or "explain RFC best practices". Supports --prd-only, --rfc-only, --update, --skip-research, and --output-dir flags.
 ---
 
 # Spec Creator: Conversational PRD and RFC Generation
 
-Creates PRD and RFC specification documents through an iterative, research-backed, conversational process. The user describes what they want to build; the skill researches the domain, asks targeted clarifying questions, and drafts specs incrementally with user review at each stage.
+Creates and updates PRD and RFC specification documents through an iterative, research-backed, conversational process. The user describes what they want to build or change; the skill researches the domain, asks targeted clarifying questions, and drafts specs incrementally with user review at each stage.
 
 ## Overview
 
-This skill operates in two modes:
+This skill operates in three modes:
 
 1. **Spec Creation**: Full iterative process: research, clarify, PRD, RFC, write files
-2. **Q&A**: Answer questions about spec writing methodology, EARS notation, RFC structure, etc.
+2. **Spec Update**: Modify an existing spec while ensuring consistency with the constitution, global invariants, and all other specs in the directory
+3. **Q&A**: Answer questions about spec writing methodology, EARS notation, RFC structure, etc.
 
 The core principle is **PRD first, RFC second**: the PRD defines the "what" (requirements, personas, acceptance criteria in EARS notation); the RFC defines the "how" (architecture, data model, interfaces). Neither is written until the user's intent is fully clarified through iterative questioning.
 
@@ -24,9 +25,14 @@ Invoke this skill when:
 - User says: "design the [X] module" or "I want to build [feature]"
 - User provides: "/spec-creator [description]"
 - User provides: "/spec-creator --prd-only [description]"
+- User says: "update the billing RFC to add webhook retries"
+- User says: "add a caching layer to the notification service spec"
+- User provides: "/spec-creator --update .specs/billing-service/02-RFC-billing-service.md add retry logic"
+- User says: "modify the entitlement spec to support per-project quotas"
 - User asks: "what is EARS notation?" or "how should I structure an RFC?"
 - User asks: "what sections does a PRD need?" or "explain RFC best practices"
 - User needs: structured requirements capture before implementation
+- User needs: to modify an existing spec without breaking consistency with other specs
 
 ## Prerequisites
 
@@ -42,8 +48,11 @@ Invoke this skill when:
 | Research | enabled | `--skip-research` | Skip WebSearch domain research |
 | Output scope | both | `--prd-only` | Generate PRD only, skip RFC |
 | Output scope | both | `--rfc-only` | Generate RFC only (requires existing PRD path) |
+| Mode | create | `--update PATH` | Update an existing spec file instead of creating a new one |
 
-Example: `/spec-creator --output-dir docs/specs --skip-research I need a payments module`
+Examples:
+- `/spec-creator --output-dir docs/specs --skip-research I need a payments module`
+- `/spec-creator --update .specs/billing-service/02-RFC-billing-service.md add webhook retry logic`
 
 ---
 
@@ -64,6 +73,15 @@ In Q&A mode:
 2. Answer directly with examples from the templates
 3. After answering, ask: "Would you like to start creating a spec now?"
 4. If yes, restart from Step 1 in spec creation mode
+
+#### Spec Update Detection
+
+If the request mentions updating, modifying, or changing an existing spec, or uses the `--update` flag, enter update mode. Indicators:
+- Explicit flag: `--update PATH`
+- Language: "update the billing RFC", "add X to the notification spec", "modify the entitlement PRD", "change the data model in..."
+- References a specific existing spec file path
+
+If update mode is detected, proceed to **Step U1** (Spec Update workflow, below).
 
 #### Spec Creation Parse
 
@@ -506,6 +524,170 @@ If the user says "no" or requests changes: offer to make further edits in the co
 
 ---
 
+## Spec Update Workflow
+
+When the user wants to modify an existing spec rather than create a new one, this workflow ensures the change does not introduce inconsistencies with the constitution, global invariants, or other specs in the directory.
+
+### Step U1: Load Context
+
+1. **Identify the target spec**: If `--update PATH` was provided, use that path. Otherwise, infer from the user's request (e.g., "update the billing RFC" maps to the RFC file in the billing-service subdirectory). If ambiguous, ask: "Which spec file do you want to update?" and list the available specs.
+
+2. **Read the target spec** in full.
+
+3. **Identify the companion spec**: If the target is an RFC, find and read the corresponding PRD (same `{NN}-` prefix, same service directory). If the target is a PRD, find and read the corresponding RFC. Both documents may need updates to stay in sync.
+
+4. **Read all other specs** in the `.specs/` directory to build the cross-spec map (same as Step 2b item 4 in the creation workflow): data ownership, public interfaces, dependencies, responsibilities, key invariants.
+
+5. **Read the constitution and global invariants** (same as Step 2b item 3 in the creation workflow).
+
+6. **Summarize** what was loaded: "I've read the target spec, its companion, N other specs, the constitution, and the global engineering standards. Here's what you're asking me to change: [restate the user's request]."
+
+### Step U2: Clarify the Change
+
+Ask targeted questions about the change (not the full structural/domain question battery from Step 3). Focus on:
+
+- **Scope**: "Does this change affect only this spec, or should it ripple to other specs too?"
+- **Motivation**: "What's driving this change? (new requirement, bug found during implementation, architectural decision)"
+- **Constraints**: "Are there any constraints on how this should be implemented that differ from the original spec?"
+
+If the change is simple and self-explanatory (e.g., "add a retry count to the error handling table"), skip clarifying questions and proceed directly.
+
+**WAIT for the user's response if questions were asked.**
+
+### Step U3: Impact Analysis
+
+Before drafting any changes, analyze what the requested modification would affect:
+
+#### 3a. Identify affected sections in the target spec
+
+List every section of the target spec that needs to change. For example, adding a caching layer to an RFC would affect: Data Model (new cache section), Key Data Flows (cache hit/miss paths), Environment Variables (Redis URL), Key Invariants (cache invalidation rules), Dependencies (Redis), and possibly Testing.
+
+#### 3b. Check companion spec consistency
+
+Determine whether the companion spec (PRD if updating RFC, or RFC if updating PRD) needs corresponding changes:
+- If updating the RFC's data model, does the PRD need new functional requirements or NFRs?
+- If updating the PRD's requirements, does the RFC need new interfaces, data flows, or error handling?
+
+#### 3c. Check cross-spec consistency
+
+Check the proposed change against every other spec in the directory:
+- Does the change affect data ownership boundaries? (e.g., adding a table that another service already owns)
+- Does the change modify or add a public interface that overlaps with another service?
+- Does the change alter a dependency direction? (e.g., Service A now calls Service B, but Service B's spec says it has no upstream callers)
+- Does the change introduce a new external service integration that another module already wraps?
+
+#### 3d. Check constitution and global invariants
+
+Verify the proposed change conforms to both layers of project rules.
+
+#### 3e. Present the impact analysis
+
+Present a structured impact report before making any changes:
+
+```
+## Impact Analysis
+
+### Requested Change
+[Restate what the user asked for]
+
+### Sections to Modify in Target Spec ({target file})
+| Section | Change |
+|---------|--------|
+| Data Model | Add Redis cache layer with key patterns and TTLs |
+| Key Data Flows | Add cache-hit/miss paths to the lookup flow |
+| Environment Variables | Add REDIS_URL |
+| Key Invariants | Add cache invalidation rule |
+| Dependencies | Add Redis as downstream dependency |
+| Testing | Add cache invalidation test requirement |
+
+### Companion Spec Updates ({companion file})
+| Section | Change |
+|---------|--------|
+| NFRs - Performance | Update p95 target to reflect cached reads |
+| REQ-4 Criteria | Add EARS criterion for cache miss behavior |
+
+### Other Specs Affected
+| Spec | Section | Change Needed | Reason |
+|------|---------|---------------|--------|
+| 03-RFC-entitlement-quota-service.md | Dependencies | Add this service as upstream caller | New service calls entitlement.checkQuota() in the cache-miss path |
+
+### Constitution / Global Invariants
+[PASS] All changes conform to the project constitution and global engineering standards.
+OR
+[CONFLICT] The following rules are affected:
+| Rule Source | Rule | Conflict | Proposed Resolution |
+|-------------|------|----------|---------------------|
+| stack.md | Redis MUST use rediss:// | N/A - conforms | - |
+```
+
+**WAIT for user to review and approve the impact analysis before proceeding.**
+
+### Step U4: Draft Changes (Section-by-Section)
+
+Draft the modified sections of the target spec. Present each changed section showing the diff between old and new content. Use this format:
+
+```
+### [Section Name] (modified)
+
+**Was:**
+[Original content of this section]
+
+**Now:**
+[Updated content of this section]
+
+**Why:** [Brief rationale for the change]
+```
+
+Group related section changes together and present them for review.
+
+**WAIT for user response.** Revise if needed.
+
+If the companion spec also needs updates, draft those next using the same format.
+
+**WAIT for user response.** Revise if needed.
+
+If other specs need updates, draft those last, again using the same format.
+
+**WAIT for user response.** Revise if needed.
+
+### Step U5: Write Changes (Explicit Approval Gate)
+
+**This step requires explicit user approval before any file is modified.**
+
+Present the full list of files to be written:
+
+```
+I'm ready to write the following changes:
+
+  Modified: {target spec path} (N sections updated)
+  Modified: {companion spec path} (M sections updated)
+  Modified: {other spec path} (1 section updated)
+
+Shall I write these changes?
+```
+
+**WAIT for explicit confirmation.**
+
+Only after the user confirms:
+1. Write each modified file
+2. Confirm: "Files updated successfully."
+
+Output summary:
+
+```
+## Specs Updated
+
+| File | Sections Changed |
+|------|-----------------|
+| {target spec path} | Data Model, Key Data Flows, Environment Variables, Key Invariants, Dependencies, Testing |
+| {companion spec path} | NFRs, REQ-4 Criteria |
+| {other spec path} | Dependencies |
+
+All specs in .specs/ remain consistent with each other, the constitution, and global engineering standards.
+```
+
+---
+
 ## Edge Cases
 
 ### No Codebase Exists
@@ -545,9 +727,21 @@ If the new service fundamentally cannot comply with a constitution rule (e.g., a
 ### No Constitution Exists
 If no constitution or invariants document is found, skip all constitution conformance checks. Optionally suggest: "Your project doesn't have a constitution or invariants document. Would you like me to create one based on the rules established in this spec?"
 
-### Cross-Spec Inconsistency Detected
+### Cross-Spec Inconsistency Detected (Creation Mode)
 If the new spec conflicts with an existing spec (e.g., both claim ownership of the same table, or the new service wants to call an external API that another service wraps exclusively), do NOT silently adjust the new spec. Instead:
 1. Flag the inconsistency inline when presenting the relevant section
 2. Explain what the existing spec says and where (e.g., "02-RFC-billing-service.md states that the Billing Service wraps Stripe exclusively")
 3. Propose a resolution: either the new spec adapts (call the existing service instead), or the existing spec needs updating (transfer ownership). Make a recommendation but let the user decide.
 4. If the user chooses to update the existing spec, note the required change in the Open Questions section: "Requires update to {existing spec path}: {description of change}"
+
+### Update Causes Cascade Across Many Specs
+If the impact analysis (Step U3) reveals that the change would require modifications to 4+ other specs, warn the user before proceeding: "This change has a wide blast radius, affecting N other specs. Would you like to proceed with all changes, narrow the scope, or reconsider the approach?" Present the full list so the user can make an informed decision.
+
+### Update Target Spec Not Found
+If the user references a spec that doesn't exist (e.g., "update the auth service RFC" but no auth service spec exists), inform them: "No spec found for [service name] in {output_dir}. Would you like to create one instead?" If yes, switch to spec creation mode.
+
+### Update Conflicts With In-Progress Implementation
+If the spec being updated has already been decomposed into JIRA tickets (check for ticket references in the spec or ask the user), warn: "This spec may have already been partially implemented. Changes to the spec may require corresponding changes to existing tickets or code. Proceed with the spec update?"
+
+### Companion Spec Missing
+If updating an RFC but the companion PRD doesn't exist (or vice versa), note it: "No companion PRD found for this RFC. I'll update the RFC only. Consider creating a PRD later to keep the spec pair complete."
