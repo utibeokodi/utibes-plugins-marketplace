@@ -1,16 +1,36 @@
-# Claude Plugins Marketplace
+# Utibe's Plugins Marketplace
 
 A personal marketplace for Claude Code plugins. Install plugins directly using Claude Code's built-in plugin system.
 
 ## Installation
 
-Register this marketplace in Claude Code, then install any plugin:
+First, add this marketplace to Claude Code:
 
-```
-/install <plugin-name>@claude-plugins-marketplace
+```bash
+# From the CLI
+claude plugin marketplace add utibeokodi/utibes-plugins-marketplace
+
+# Or from inside a Claude Code session
+/plugin marketplace add utibeokodi/utibes-plugins-marketplace
 ```
 
-Or browse available plugins with `/plugin > Discover`.
+Then install any plugin:
+
+```bash
+# From the CLI
+claude plugin install <plugin-name>
+
+# Or from inside a Claude Code session
+/install <plugin-name>
+```
+
+For example:
+
+```bash
+claude plugin install pr-reviewer
+```
+
+You can also browse available plugins with `/plugin > Discover`.
 
 ## Structure
 
