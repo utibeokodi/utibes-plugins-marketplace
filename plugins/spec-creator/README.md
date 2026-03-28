@@ -99,5 +99,5 @@ Where `{NN}` is a zero-padded sequential number and `{service-slug}` is the keba
 ## Installation
 
 ```
-/install spec-creator@utibes-plugins-marketplace
+/plugin install spec-creator@utibes-plugins-marketplace
 ```

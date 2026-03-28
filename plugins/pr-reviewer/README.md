@@ -63,5 +63,5 @@ Unlike generic code review tools, PR Reviewer starts by understanding WHY the co
 ## Installation
 
 ```
-/install pr-reviewer@claude-plugins-marketplace
+/plugin install pr-reviewer@utibes-plugins-marketplace
 ```

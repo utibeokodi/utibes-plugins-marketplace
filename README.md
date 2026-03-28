@@ -18,19 +18,19 @@ Then install any plugin:
 
 ```bash
 # From the CLI
-claude plugin install <plugin-name>
+claude plugin install <plugin-name>@utibes-plugins-marketplace
 
 # Or from inside a Claude Code session
-/install <plugin-name>
+/plugin install <plugin-name>@utibes-plugins-marketplace
 ```
 
 For example:
 
 ```bash
-claude plugin install pr-reviewer
+claude plugin install pr-reviewer@utibes-plugins-marketplace
 ```
 
-You can also browse available plugins with `/plugin > Discover`.
+You can also browse available plugins with `/plugin` and selecting **Discover**.
 
 ## Structure
 

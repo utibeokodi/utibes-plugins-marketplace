@@ -95,5 +95,5 @@ validation/<ticket-key>/
 ## Installation
 
 ```
-/install manual-verify@claude-plugins-marketplace
+/plugin install manual-verify@utibes-plugins-marketplace
 ```

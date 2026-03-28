@@ -83,5 +83,5 @@ Between waves, you choose how the next wave branches:
 ## Installation
 
 ```
-/install swe-dev@claude-plugins-marketplace
+/plugin install swe-dev@utibes-plugins-marketplace
 ```

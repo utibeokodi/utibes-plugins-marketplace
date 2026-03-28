@@ -21,5 +21,5 @@ Or ask naturally: "fact-check this blog post", "verify the claims in my-article.
 ## Installation
 
 ```
-/install blog-fact-checker@claude-plugins-marketplace
+/plugin install blog-fact-checker@utibes-plugins-marketplace
 ```

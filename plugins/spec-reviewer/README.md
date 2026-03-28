@@ -90,5 +90,5 @@ Reviews PRD and RFC specification documents for security vulnerabilities (includ
 ## Installation
 
 ```
-/install spec-reviewer@utibes-plugins-marketplace
+/plugin install spec-reviewer@utibes-plugins-marketplace
 ```

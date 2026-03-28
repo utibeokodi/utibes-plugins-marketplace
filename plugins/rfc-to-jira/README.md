@@ -48,5 +48,5 @@ Or ask naturally: "create JIRA tickets from the billing service RFC", "break dow
 ## Installation
 
 ```
-/install rfc-to-jira@claude-plugins-marketplace
+/plugin install rfc-to-jira@utibes-plugins-marketplace
 ```

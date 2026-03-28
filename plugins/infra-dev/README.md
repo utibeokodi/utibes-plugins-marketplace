@@ -61,5 +61,5 @@ Step 9: Report results
 ## Installation
 
 ```
-/install infra-dev@claude-plugins-marketplace
+/plugin install infra-dev@utibes-plugins-marketplace
 ```

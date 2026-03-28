@@ -9,5 +9,5 @@ A reference plugin demonstrating the standard structure for the Claude Plugins M
 ## Installation
 
 ```
-/install example-plugin@claude-plugins-marketplace
+/plugin install example-plugin@utibes-plugins-marketplace
 ```
