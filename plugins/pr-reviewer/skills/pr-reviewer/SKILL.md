@@ -1,6 +1,8 @@
 ---
 name: pr-reviewer
 description: This skill should be used when reviewing a GitHub pull request with full JIRA context. Triggers on requests like "review this PR", "review PR #42", "/pr-reviewer #42", "/pr-reviewer PROJ-123 #42", or when users want a comprehensive code review that checks test coverage (black-box philosophy), runs tests locally, verifies implementation matches the JIRA ticket, and reviews code across 8 dimensions (Security, Performance, API/Breaking Changes, Observability, Accessibility, Dependency Risk, Architecture Fit, Maintainability). Supports posting findings as a GitHub PR comment via the --comment flag.
+argument-hint: "[TICKET-KEY] #PR-number [--comment] [--depth N] [--model MODEL]"
+disable-model-invocation: true
 ---
 
 # PR Reviewer: Comprehensive Code Review with JIRA Context
@@ -485,3 +487,4 @@ Total lessons: {count}
 3. **Capture successes too.** If you made a judgment call and the user confirmed it was right, record that as a positive lesson so future sessions maintain that behavior.
 4. **Deduplicate.** If a new correction matches an existing lesson, update the existing lesson's count or add context rather than creating a duplicate.
 5. **Keep it concise.** Target under 50 lessons; if it grows beyond that, consolidate related lessons into patterns.
+6. **Note conformance requirements on every proposed change.** When writing entries in the "Proposed Skill Changes" table, add a note that the change must keep SKILL.md under 500 lines (moving detail to references/ files if needed) and that side-effect skills must retain `disable-model-invocation: true` in their frontmatter.

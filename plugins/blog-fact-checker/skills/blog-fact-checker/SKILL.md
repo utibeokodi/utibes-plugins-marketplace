@@ -1,6 +1,7 @@
 ---
 name: blog-fact-checker
 description: This skill should be used when verifying blog posts or articles sentence by sentence, outputting a comprehensive verification table in chat. Triggers on requests like "fact-check this blog post", "verify my blog", "/blog-fact-checker [file-path]", or when users want to validate all claims in markdown content. Supports technical blogs, news articles, historical content, and general knowledge posts.
+argument-hint: "[file-path]"
 ---
 
 # Blog Fact Checker
@@ -450,3 +451,4 @@ Total lessons: {count}
 3. **Capture successes too.** If you made a judgment call and the user confirmed it was right, record that as a positive lesson so future sessions maintain that behavior.
 4. **Deduplicate.** If a new correction matches an existing lesson, update the existing lesson's count or add context rather than creating a duplicate.
 5. **Keep it concise.** Target under 50 lessons; if it grows beyond that, consolidate related lessons into patterns.
+6. **Note conformance requirements on every proposed change.** When writing entries in the "Proposed Skill Changes" table, add a note that the change must keep SKILL.md under 500 lines (moving detail to references/ files if needed) and that side-effect skills must retain `disable-model-invocation: true` in their frontmatter.
