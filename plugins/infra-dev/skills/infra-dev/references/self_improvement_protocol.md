@@ -55,7 +55,7 @@ Total lessons: {count}
 
 ## Proposed Skill Changes
 
-{If a lesson is clear and repeated enough to warrant a permanent change to the SKILL.md instructions, document the proposed change here. Include which section to modify and the suggested new wording. Proposed changes must keep the skill conforming to Anthropic best practices: SKILL.md under 500 lines (move detail to references/ files) and side-effect skills must have disable-model-invocation: true.}
+{If a lesson is clear and repeated enough to warrant a permanent change to the SKILL.md instructions, document the proposed change here. Include which section to modify and the suggested new wording.}
 
 | # | Section | Current Behavior | Proposed Change | Based on Lessons |
 |---|---------|-----------------|-----------------|------------------|
@@ -71,3 +71,4 @@ Total lessons: {count}
 3. **Capture successes too.** If you made a judgment call and the user confirmed it was right, record that as a positive lesson so future sessions maintain that behavior.
 4. **Deduplicate.** If a new correction matches an existing lesson, update the existing lesson's count or add context rather than creating a duplicate.
 5. **Keep it concise.** Target under 50 lessons; if it grows beyond that, consolidate related lessons into patterns.
+6. **Note conformance requirements on every proposed change.** When writing entries in the "Proposed Skill Changes" table, add a note that the change must keep SKILL.md under 500 lines (moving detail to references/ files if needed) and that side-effect skills must retain `disable-model-invocation: true` in their frontmatter.
