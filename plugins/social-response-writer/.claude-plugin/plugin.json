@@ -1,0 +1,8 @@
+{
+  "name": "social-response-writer",
+  "description": "Draft high-signal LinkedIn and Twitter/X replies that convert social posts about AI agent failures, debugging pain, or production monitoring into conversations that lead to design partner pilots",
+  "author": {
+    "name": "Utibe Okodi"
+  },
+  "license": "MIT"
+}
